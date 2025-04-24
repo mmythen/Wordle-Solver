@@ -6,8 +6,33 @@ import PyQt6.QtWidgets
 from wordleGUI import Ui_WordleWizard
 import wordleSolver
 
-class WordleWizard(PyQt6.QtWidgets.QMainWindow):
+class StartupDialog(PyQt6.QtWidgets.QDialog):
     def __init__(self):
+        #create window
+        super().__init__()
+        self.setWindowTitle("Starting Word")
+        self.setFixedSize(300,150)
+        layout = PyQt6.QtWidgets.QVBoxLayout()
+
+        #create widgets
+        self.label = PyQt6.QtWidgets.QLabel("Enter your starting word!\n (You may also leave the textbox blank to start\n with 1 of 5 random strong starting words)")
+        self.input_field = PyQt6.QtWidgets.QLineEdit()
+        self.button = PyQt6.QtWidgets.QPushButton("OK")
+
+        #attach widgets
+        layout.addWidget(self.label)
+        layout.addWidget(self.input_field)
+        layout.addWidget(self.button)
+
+        self.setLayout(layout)
+        self.button.clicked.connect(self.accept)
+
+    def get_input(self):
+        return self.input_field.text()
+
+
+class WordleWizard(PyQt6.QtWidgets.QMainWindow):
+    def __init__(self, starting_word):
         super().__init__()
 
         # setting up Ui instance
@@ -17,10 +42,16 @@ class WordleWizard(PyQt6.QtWidgets.QMainWindow):
         
         self.ui.reset_button.clicked.connect(self.restart)
 
+        self.prev_guess = ""
+        # getting passed starting word
+        if starting_word == "" or len(starting_word) != 5 or not starting_word.isalpha():
+            self.prev_guess = random.choice(['raise', 'slate', 'crate', 'irate', 'trace'])
+        else:
+            self.prev_guess = starting_word.lower()
+
         
-        self.active_row = 1
-        self.prev_guess = random.choice(['raise', 'slate', 'crate', 'irate', 'trace'])
         self.original_guess = self.prev_guess
+        self.active_row = 1
         self.feedback = ''
         self.candidates = []
 
@@ -131,9 +162,12 @@ class WordleWizard(PyQt6.QtWidgets.QMainWindow):
 
 def main():
     app = PyQt6.QtWidgets.QApplication(sys.argv)
-    window = WordleWizard()
-    window.show()
-    sys.exit(app.exec())
+
+    dialog = StartupDialog()
+    if dialog.exec():
+        window = WordleWizard(dialog.get_input())
+        window.show()
+        sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()

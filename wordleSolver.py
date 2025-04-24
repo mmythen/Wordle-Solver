@@ -80,6 +80,16 @@ def highest_entropy(words):
     
     return max(d, key=d.get)
 
+def count_values(d: dict, char):
+    #function to count how many times a value appears in a dict
+    count = 0
+    for val in d.values():
+        if val == char:
+            count += 1
+    return count
+
+
+
 
 def guessing(feedback, prev_guess, round, candidates):
     # begin with all words possible
@@ -120,7 +130,14 @@ def guessing(feedback, prev_guess, round, candidates):
                 break
         #blank
         for letter in excluded:
-            if letter in green.values() or letter in yellow.values():
+            if letter in yellow.values():
+                continue
+            if letter in green.values():
+                # if the word contains two of a letter but the actual answer only has 1, word is invalid
+                if count_values(green, letter) < word.count(letter):
+                    valid = False
+                    break
+                #otherwise continue
                 continue
             if letter in word:
                 valid = False
@@ -130,6 +147,7 @@ def guessing(feedback, prev_guess, round, candidates):
             new_candidates.append(word)
 
     candidates = new_candidates
+    print(candidates)
     if not candidates:
         print("There are no possible words, please double check the feedback!")
         return
